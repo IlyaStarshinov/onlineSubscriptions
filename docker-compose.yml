@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: subscription_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: subscription_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./internal/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
