@@ -1,36 +1,21 @@
 package main
 
 import (
-	"fmt"
+	"github.com/IlyaStarshinov/onlineSubscriptions/internal/repository"
 	"log"
+	"net/http"
 
-	"github.com/IlyaStarshinov/onlineSubscriptions/internal/config"
-	"github.com/IlyaStarshinov/onlineSubscriptions/internal/model"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"github.com/IlyaStarshinov/onlineSubscriptions/internal/handler"
 )
 
 func main() {
-	cfg, err := config.LoadConfig()
+	db, err := repository.InitRepository()
 	if err != nil {
-		log.Fatalf("config load error: %v", err)
+		log.Fatalf("failed to initialize database, got error %v", err)
 	}
 
-	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName,
-	)
-	fmt.Printf("Подключаюсь с параметрами:\nHost: %s\nPort: %s\nUser: %s\nDB: %s\n",
-		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBName)
-
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("db open error: %v", err)
+	router := handler.SetupRouter(db)
+	if err := http.ListenAndServe(":8080", router); err != nil {
+		log.Fatal(err)
 	}
-
-	err = db.AutoMigrate(&model.Subscription{})
-	if err != nil {
-		log.Fatalf("db migrate error: %v", err)
-	}
-	log.Println("Database migrated")
 }
