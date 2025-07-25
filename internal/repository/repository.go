@@ -19,18 +19,18 @@ func InitRepository() (*gorm.DB, error) {
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName,
 	)
-	fmt.Printf("Подключаюсь с параметрами:\nHost: %s\nPort: %s\nUser: %s\nDB: %s\n",
+	log.Printf("connecting with the parameters:\nHost: %s\nPort: %s\nUser: %s\nDB: %s\n",
 		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBName)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("db open error: %v", err)
 	}
-
+	log.Println("db migrate ")
 	err = db.AutoMigrate(&model.Subscription{})
 	if err != nil {
 		log.Fatalf("db migrate error: %v", err)
 	}
-	log.Println("Database connected and migrated")
+	log.Println("Database connected and migrated successfully")
 	return db, nil
 }

@@ -3,13 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/IlyaStarshinov/onlineSubscriptions/internal/model"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
+	"log"
+	"net/http"
+	"time"
 )
 
 type createSubscriptionInput struct {
@@ -31,28 +31,33 @@ func NewHandler(db *gorm.DB) *Handler {
 func (h *Handler) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	var input createSubscriptionInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Printf("Failed to decode request body: %v", err)
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
 		return
 	}
 
 	if input.ServiceName == "" {
+		log.Printf("Validation error: service name is empty")
 		http.Error(w, "Service name is required", http.StatusBadRequest)
 		return
 	}
 
 	if input.Price < 0 {
+		log.Printf("Price is negative")
 		http.Error(w, "Price must be > 0", http.StatusBadRequest)
 		return
 	}
 
 	userUUID, err := uuid.Parse(input.UserID)
 	if err != nil {
+		log.Printf("Failed to parse user UUID: %v", err)
 		http.Error(w, "user_id must be valid UUID", http.StatusBadRequest)
 		return
 	}
 
 	starDate, err := time.Parse("01-2006", input.StartDate)
 	if err != nil {
+		log.Printf("Failed to parse start date: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -60,6 +65,7 @@ func (h *Handler) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	if input.EndDate != nil {
 		endDate, err := time.Parse("01-2006", *input.EndDate)
 		if err != nil {
+			log.Printf("Failed to parse end date: %v", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -74,9 +80,11 @@ func (h *Handler) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.DB.Create(&sub).Error; err != nil {
+		log.Printf("Failed to create subscription: %v", err)
 		http.Error(w, fmt.Sprintf("failed to create subscription: %v", err), http.StatusBadRequest)
 		return
 	}
+	log.Printf("created subscription: service=%s, user_id=%s, price=%d", sub.ServiceName, userUUID.String(), sub.Price)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(sub)
 }
@@ -85,10 +93,12 @@ func (h *Handler) GetSubscription(w http.ResponseWriter, r *http.Request) {
 	var sub []model.Subscription
 
 	if err := h.DB.Find(&sub).Error; err != nil {
+		log.Printf("Failed to find subscriptions: %v", err)
 		http.Error(w, "Failed to fetch subscriptions", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("found subscription: %v", sub)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(sub)
@@ -100,14 +110,18 @@ func (h *Handler) GetSubscriptionsByUserID(w http.ResponseWriter, r *http.Reques
 
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
+		log.Printf("Failed to parse user UUID: %v", err)
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 	var subs []model.Subscription
 	if err := h.DB.Where("user_id = ?", userID).Find(&subs).Error; err != nil {
+		log.Printf("Failed to find subscriptions: %v", err)
 		http.Error(w, "Failed to fetch subscriptions", http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("found subscriptions: %v", subs)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(subs)
@@ -119,20 +133,23 @@ func (h *Handler) DeleteSubscription(w http.ResponseWriter, r *http.Request) {
 
 	subId, err := uuid.Parse(subIDStr)
 	if err != nil {
+		log.Printf("Failed to parse user UUID: %v", err)
 		http.Error(w, "Invalid sub ID", http.StatusBadRequest)
 		return
 	}
 
 	result := h.DB.Where("id = ?", subId).Delete(&model.Subscription{})
 	if result.Error != nil {
+		log.Printf("Failed to delete subscription: %v", result.Error)
 		http.Error(w, "Failed to delete subscription", http.StatusBadRequest)
 		return
 	}
 	if result.RowsAffected == 0 {
+		log.Printf("No subscription found to delete with id: %s", subId)
 		http.Error(w, "Subscription not found", http.StatusNotFound)
 		return
 	}
-
+	log.Printf("deleted subscription: %v", subId)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -143,18 +160,21 @@ func (h *Handler) GetSubscriptionSummary(w http.ResponseWriter, r *http.Request)
 	endDateStr := r.URL.Query().Get("end_date")
 
 	if startDateStr == "" || endDateStr == "" {
+		log.Printf("Start date and end date are required")
 		http.Error(w, "Missing start date or end date", http.StatusBadRequest)
 		return
 	}
 
 	startDate, err := time.Parse("01-2006", startDateStr)
 	if err != nil {
+		log.Printf("Failed to parse start date: %v", err)
 		http.Error(w, "Invalid start date", http.StatusBadRequest)
 		return
 	}
 
 	endDate, err := time.Parse("01-2006", endDateStr)
 	if err != nil {
+		log.Printf("Failed to parse end date: %v", err)
 		http.Error(w, "Invalid end date", http.StatusBadRequest)
 		return
 	}
@@ -162,6 +182,7 @@ func (h *Handler) GetSubscriptionSummary(w http.ResponseWriter, r *http.Request)
 	if userID != "" {
 		userUUID, err = uuid.Parse(userID)
 		if err != nil {
+			log.Printf("Failed to parse user UUID: %v", err)
 			http.Error(w, "Invalid user ID", http.StatusBadRequest)
 			return
 		}
@@ -176,13 +197,15 @@ func (h *Handler) GetSubscriptionSummary(w http.ResponseWriter, r *http.Request)
 	}
 	err = query.Select("SUM(price)").Scan(&sum).Error
 	if err != nil {
+		log.Printf("Failed to fetch subscription summary: %v", err)
 		http.Error(w, "Failed to fetch subscription summary", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("Subscription summary: user_id=%s, service_name=%s, sum=%d", userUUID, serviceName, sum)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]int{
 		"total_price": sum,
 	})
-
 }

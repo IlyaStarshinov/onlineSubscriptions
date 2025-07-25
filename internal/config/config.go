@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -20,12 +21,13 @@ func LoadConfig() (*Config, error) {
 	if _, err := os.Stat(".env"); err != nil {
 		return nil, fmt.Errorf(".env file not found: %w", err)
 	}
-
 	// Загружаем .env
 	err := godotenv.Load("C:/Users/ilyas/GolandProjects/onlineSubscriptions/.env")
 	if err != nil {
+
 		return nil, fmt.Errorf("error loading .env: %w", err)
 	}
+	log.Printf("Loading config from .env")
 
 	// Проверяем, что переменные не пустые
 	requiredVars := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME"}
@@ -43,6 +45,6 @@ func LoadConfig() (*Config, error) {
 		DBName:     os.Getenv("DB_NAME"),
 	}
 
-	fmt.Printf("Config loaded: %+v\n", cfg) // Вывод всех полей
+	log.Println("Configuration loaded successfully")
 	return cfg, nil
 }
