@@ -20,7 +20,7 @@ REST API-сервис для управления онлайн-подписка�
 ├── internal
 │   ├── handler          # Обработчики API, разделены по CRUD
 │   ├── model            # GORM-модель Subscription
-│   ├── repository       # Работа с хранилищем (если будет)
+│   ├── repository       # Работа с хранилищем
 │   ├── migrations       # SQL-миграции
 │   └── config           # Чтение .env
 ├── docs                 # Swagger-документация (авто)
