@@ -1,9 +1,16 @@
+// @title Online Subscriptions API
+// @version 1.0
+// @description API для управления онлайн-подписками пользователей
+// @host localhost:8080
+// @BasePath /
 package main
 
 import (
-	"github.com/IlyaStarshinov/onlineSubscriptions/internal/repository"
 	"log"
 	"net/http"
+
+	_ "github.com/IlyaStarshinov/onlineSubscriptions/docs"
+	"github.com/IlyaStarshinov/onlineSubscriptions/internal/repository"
 
 	"github.com/IlyaStarshinov/onlineSubscriptions/internal/handler"
 )

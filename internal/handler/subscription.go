@@ -3,16 +3,17 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/IlyaStarshinov/onlineSubscriptions/internal/model"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
-	"log"
-	"net/http"
-	"time"
 )
 
-type createSubscriptionInput struct {
+type CreateSubscriptionInput struct {
 	ServiceName string  `json:"service_name"`
 	Price       int     `json:"price"`
 	UserID      string  `json:"user_id"`
@@ -28,8 +29,17 @@ func NewHandler(db *gorm.DB) *Handler {
 	return &Handler{DB: db}
 }
 
+// @Summary Создать подписку
+// @Description Создаёт новую онлайн-подписку
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param input body handler.CreateSubscriptionInput true "Данные подписки"
+// @Success 201 {object} model.Subscription
+// @Failure 400 {string} string "Bad Request"
+// @Router /subscriptions [post]
 func (h *Handler) CreateSubscription(w http.ResponseWriter, r *http.Request) {
-	var input createSubscriptionInput
+	var input CreateSubscriptionInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Printf("Failed to decode request body: %v", err)
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
@@ -89,6 +99,13 @@ func (h *Handler) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(sub)
 }
 
+// @Summary Получить все подписки
+// @Description Возвращает список всех подписок
+// @Tags subscriptions
+// @Produce json
+// @Success 200 {array} model.Subscription
+// @Failure 400 {string} string "Bad Request"
+// @Router /subscriptions [get]
 func (h *Handler) GetSubscription(w http.ResponseWriter, r *http.Request) {
 	var sub []model.Subscription
 
@@ -104,6 +121,14 @@ func (h *Handler) GetSubscription(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(sub)
 }
 
+// @Summary Получить подписки по user_id
+// @Description Возвращает список подписок определенного пользователя
+// @Tags subscriptions
+// @Produce json
+// @Param user_id path string true "UUID пользователя"
+// @Success 200 {array} model.Subscription
+// @Failure 400 {string} string "Bad Request"
+// @Router /subscriptions/{user_id} [get]
 func (h *Handler) GetSubscriptionsByUserID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userIDStr := vars["user_id"]
@@ -127,6 +152,14 @@ func (h *Handler) GetSubscriptionsByUserID(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(subs)
 }
 
+// @Summary Удалить подписку
+// @Description Удаляет подписку по ID
+// @Tags subscriptions
+// @Param id path string true "UUID подписки"
+// @Success 204
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Router /subscriptions/{id} [delete]
 func (h *Handler) DeleteSubscription(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	subIDStr := vars["id"]
@@ -153,6 +186,18 @@ func (h *Handler) DeleteSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Получить сумму подписок
+// @Description Выводит общую сумму подписок по фильтрам (по пользователю, по сервису, по периоду)
+// @Tags subscriptions
+// @Produce json
+// @Param user_id query string false "UUID пользователя"
+// @Param service_name query string false "Название сервиса"
+// @Param start_date query string true "Начало периода (MM-YYYY)"
+// @Param end_date query string true "Конец периода (MM-YYYY)"
+// @Success 200 {object} map[string]int
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /subscriptions/summary [get]
 func (h *Handler) GetSubscriptionSummary(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	serviceName := r.URL.Query().Get("service_name")
