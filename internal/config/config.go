@@ -22,7 +22,7 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf(".env file not found: %w", err)
 	}
 	// Загружаем .env
-	err := godotenv.Load("C:/Users/ilyas/GolandProjects/onlineSubscriptions/.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 
 		return nil, fmt.Errorf("error loading .env: %w", err)
