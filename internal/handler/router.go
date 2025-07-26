@@ -14,6 +14,7 @@ func SetupRouter(db *gorm.DB) *mux.Router {
 	r.Use(loggingMiddleware)
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
+	r.HandleFunc("/subscriptions/{id}", h.UpdateSubscription).Methods("PUT")
 	r.HandleFunc("/subscriptions", h.CreateSubscription).Methods("POST")
 	r.HandleFunc("/subscriptions", h.GetSubscription).Methods("GET")
 	r.HandleFunc("/subscriptions/{user_id}", h.GetSubscriptionsByUserID).Methods("GET")

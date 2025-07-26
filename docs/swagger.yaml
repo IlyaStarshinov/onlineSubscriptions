@@ -3,14 +3,37 @@ definitions:
   handler.CreateSubscriptionInput:
     properties:
       end_date:
+        example: 12-2023
+        type: string
+      price:
+        example: 599
+        type: integer
+      service_name:
+        example: Netflix
+        type: string
+      start_date:
+        example: 01-2023
+        type: string
+      user_id:
+        example: a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6
+        type: string
+    type: object
+  handler.ErrorResponse:
+    properties:
+      error:
+        description: Описание ошибки
+        example: описание ошибки
+        type: string
+    type: object
+  handler.UpdateSubscriptionInput:
+    properties:
+      end_date:
         type: string
       price:
         type: integer
       service_name:
         type: string
       start_date:
-        type: string
-      user_id:
         type: string
     type: object
   model.Subscription:
@@ -50,7 +73,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: Получить все подписки
       tags:
       - subscriptions
@@ -75,7 +98,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: Создать подписку
       tags:
       - subscriptions
@@ -94,17 +117,51 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handler.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            type: string
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: Удалить подписку
+      tags:
+      - subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Обновляет поля существующей подписки
+      parameters:
+      - description: UUID подписки
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateSubscriptionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Subscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Обновить подписку
       tags:
       - subscriptions
   /subscriptions/{user_id}:
     get:
-      description: Возвращает список подписок определенного пользователя
+      description: Возвращает список подписок определённого пользователя
       parameters:
       - description: UUID пользователя
         in: path
@@ -123,14 +180,13 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: Получить подписки по user_id
       tags:
       - subscriptions
   /subscriptions/summary:
     get:
-      description: Выводит общую сумму подписок по фильтрам (по пользователю, по сервису,
-        по периоду)
+      description: Выводит общую сумму подписок по фильтрам
       parameters:
       - description: UUID пользователя
         in: query
@@ -162,11 +218,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handler.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: Получить сумму подписок
       tags:
       - subscriptions
