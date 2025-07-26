@@ -301,7 +301,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "description": "Описание ошибки",
                     "type": "string",
                     "example": "описание ошибки"
                 }
@@ -311,16 +310,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "end_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "12-2023"
                 },
                 "price": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 399
                 },
                 "service_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Yandex Plus"
                 },
                 "start_date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "02-2023"
                 }
             }
         },

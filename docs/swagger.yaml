@@ -21,19 +21,22 @@ definitions:
   handler.ErrorResponse:
     properties:
       error:
-        description: Описание ошибки
         example: описание ошибки
         type: string
     type: object
   handler.UpdateSubscriptionInput:
     properties:
       end_date:
+        example: 12-2023
         type: string
       price:
+        example: 399
         type: integer
       service_name:
+        example: Yandex Plus
         type: string
       start_date:
+        example: 02-2023
         type: string
     type: object
   model.Subscription:
