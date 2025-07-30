@@ -10,7 +10,6 @@ RUN go mod download
 
 COPY . .
 
-# swag уже был установлен у тебя локально, но можно оставить:
 RUN go install github.com/swaggo/swag/cmd/swag@v1.8.12
 RUN swag init -g cmd/server/main.go --parseInternal --output docs
 
